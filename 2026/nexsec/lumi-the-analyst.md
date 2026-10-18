@@ -1,6 +1,6 @@
 # Lumi the Analyst (OT / ICS): Write-up
 
-**Recovered flag:** `nexsec26{XIO_I_1_0_XIC_I_1_3_6F3A91D4}`
+**flag:** `nexsec26{XIO_I_1_0_XIC_I_1_3_6F3A91D4}`
 
 The grinder's guard door was supposed to stop the motor whenever it opened. The challenge said exactly one input contact in the Motor_Run rung had changed from the approved 2021 program.
 
