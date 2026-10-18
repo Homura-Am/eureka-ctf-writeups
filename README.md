@@ -14,11 +14,6 @@ Write-ups by **Team Eureka**.
 | Forensics | [Dead Drop Latte](2026/nexsec/dead-drop-latte.md) |
 | Misc | [VeryFest](2026/nexsec/veryfest.md) |
 | Misc | [Antivist](2026/nexsec/antivist.md) |
+| OT / ICS | [Bench Grinder GR-3](2026/nexsec/grinder-guard.md) |
 
 Each challenge has one Markdown file in the event folder. The write-ups explain what we found, how we solved it, and the flag or answers obtained.
-
-## In progress
-
-| Category | Challenge | Status |
-| --- | --- | --- |
-| OT / ICS | [Bench Grinder GR-3](2026/nexsec/grinder-guard.md) | Partial; live evidence and flag not yet available |

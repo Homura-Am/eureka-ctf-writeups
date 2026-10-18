@@ -1,95 +1,103 @@
-# Bench Grinder GR-3 (OT / ICS): Partial write-up
+# Bench Grinder GR-3 (OT / ICS): Write-up
 
-**Status:** Partial — the shared notes contain a proposed method, but no live capture or confirmed flag.
+**Recovered flag:** `nexsec26{XIO_I_1_0_XIC_I_1_3_6F3A91D4}`
 
-The challenge says the grinder should stop when its guard door opens. Exactly one input contact in the Motor_Run rung differs from the approved 2021 baseline. We need to identify that contact and prove the change using the running system.
+The grinder's guard door was supposed to stop the motor whenever it opened. The challenge said exactly one input contact in the Motor_Run rung had changed from the approved 2021 program.
 
-The important warning in the description is “one read proves nothing.” A single input/output snapshot cannot establish which contact was changed.
+The important part was proving the change from the running system. A single read could show the motor and door states, but would not explain which contact was actually controlling the rung.
 
-### 1. Establish the baseline
+### 1. Start with the baseline
 
-The challenge provides `grinder_guard_export.txt` and `modbus_point_map.md`. The shared conversation names these files, but does not expose their contents, so the original rung and point map still need to be checked.
+The challenge provided `grinder_guard_export.txt` and `modbus_point_map.md`, along with a Modbus/TCP endpoint at `koala.nexsec.my:39007`.
 
-The notes propose the following input interpretation:
+The baseline contact identified by the final match was:
 
-| Address | Symbol | Expected permissive state |
-| --- | --- | --- |
-| `I:1/0` | GuardDoor_Open | 0: door closed |
-| `I:1/1` | EStop_Pressed | 0: emergency stop released |
-| `I:1/2` | Local_Mode | 1: local mode |
-| `I:1/5` | ThermalOL_Trip | 0: no overload |
+```text
+XIO I:1/0
+```
 
-They also identify `I:1/4` as the momentary start input.
+XIO is true when its addressed bit is zero. With `I:1/0` representing GuardDoor_Open, this contact permits the rung when the door-open bit is zero.
 
-Under that interpretation, XIO contacts would pass the three active-high fault inputs when their bits are zero, while XIC would pass Local_Mode when its bit is one. This is a working hypothesis from the notes, not a verified transcription of the baseline.
+The initial theory was that the instruction had simply been inverted on the same input. The live result showed that the address had changed too.
 
-### 2. Read the inputs, output, and diagnostic registers
+### 2. Poll the live sequence
 
-The challenge endpoint in the conversation is `koala.nexsec.my:39007`, using Modbus/TCP.
+The successful run connected to the challenge service and polled its test sequencer for approximately 25 seconds:
 
-The proposed mapping is:
+```text
+[+] Connected to koala.nexsec.my:39007
+[+] Resident Checksum: 6F3A91D4
 
-| Function | Zero-based addresses | Meaning in the notes |
-| --- | --- | --- |
-| FC02 | 0–5 | Inputs `I:1/0` through `I:1/5` |
-| FC01 | 0–3 | Output coils, with coil 0 as Motor_Run |
-| FC03 | 0–3 | Event counter, pattern step, checksum high word, checksum low word |
+Polling live test sequencer for ~25 seconds...
+```
 
-These commands are for collecting the missing evidence. They have not been executed as part of this write-up:
+Repeated observations matter because Motor_Run uses a seal-in rung. Its state depends on the permissive contacts, the start input, and its previous state. Several test steps give more information than one snapshot.
+
+The shared notes describe discrete inputs at addresses 0–5, Motor_Run at coil 0, and diagnostic holding registers starting at address 0. Equivalent individual reads with mbpoll are:
 
 ```bash
-# FC02: discrete inputs
+# Discrete inputs, FC02
 mbpoll -m tcp -p 39007 -a 1 -0 -1 -t 1 -r 0 -c 6 koala.nexsec.my
 
-# FC01: output coils
+# Output coils, FC01
 mbpoll -m tcp -p 39007 -a 1 -0 -1 -t 0 -r 0 -c 4 koala.nexsec.my
 
-# FC03: holding registers
+# Holding registers, FC03
 mbpoll -m tcp -p 39007 -a 1 -0 -1 -t 4 -r 0 -c 4 koala.nexsec.my
 ```
 
-The type selectors and starting address above correct the suggested commands in the conversation. For mbpoll, `-t 1` reads discrete inputs and `-t 0` reads coils. `-0 -r 0` starts at protocol address zero, and `-1` makes each invocation return after one poll.
+These commands illustrate the read types; the supplied successful output came from the polling script. Its source and individual samples were not included.
 
-Unit ID 1 and the point mapping are assumptions from the notes until the supplied map confirms them.
+For mbpoll, `-t 1` selects discrete inputs and `-t 0` selects coils. `-0 -r 0` starts at protocol address zero, while `-1` performs one poll. When grouping separate reads, samples crossing a sequencer-step boundary should be discarded so they are not treated as simultaneous.
 
-### 3. Compare behavior across the test pattern
+### 3. Identify the changed contact
 
-The shared notes describe a repeating pattern with two-second steps and a step number in holding register 1.
+After polling, the solver reported:
 
-Collect several complete cycles, recording the inputs, Motor_Run, step number, and event counter. Read the step number before and after each group of reads, and discard groups that cross a step boundary. This reduces the risk of comparing inputs from one test step with an output from another.
+```text
+[+] Analyzing rung logic against live sequence...
+    MATCH FOUND -> nexsec26{XIO_I_1_0_XIC_I_1_3_6F3A91D4}
+```
 
-The rung also has a seal-in branch, so the previous Motor_Run state matters. Compare the full sequence with the baseline, including when the motor starts, remains on, and drops out.
+That result identifies both changes:
 
-The notes suggest watching for Motor_Run while GuardDoor_Open is one. That would demonstrate behavior inconsistent with the proposed door interlock, but would not by itself prove an XIO-to-XIC change at `I:1/0`. A different input address, another instruction change, or an incorrect point interpretation must be ruled out using the full trace.
+| Version | Instruction | Address |
+| --- | --- | --- |
+| Approved baseline | XIO | `I:1/0` |
+| Live match | XIC | `I:1/3` |
 
-Likewise, an increasing bypass-event counter supports an unsafe-condition finding only after its definition is confirmed. It does not independently identify the changed contact.
+XIC is true when its addressed bit is one. The matched live rung therefore checks input 3 instead of checking that the guard-door input is zero.
 
-### 4. Recover the resident checksum
+This explains why the same-address inversion theory was incomplete. Replacing `XIO I:1/0` with `XIC I:1/3` removes the direct guard-door check at that position. Whether the replacement contact passes now depends on input 3.
 
-The proposed register map places the checksum's high word in `N7:2` and low word in `N7:3`:
+### 4. Include the resident checksum
+
+The successful output reported the resident checksum as:
+
+```text
+6F3A91D4
+```
+
+The shared point-map notes describe the checksum as two 16-bit holding-register words, high word first. The reconstruction is:
 
 ```python
-resident_checksum = ((n7_2 & 0xffff) << 16) | (n7_3 & 0xffff)
+resident_checksum = ((high_word & 0xffff) << 16) | (low_word & 0xffff)
 print(f'{resident_checksum:08X}')
 ```
 
-The conversation lists `0x5C14A7B3` as the baseline checksum. That value still needs confirmation against the original baseline.
+The checksum identifies the running program associated with the result. The sequence comparison identifies the changed contact; the checksum alone would not establish the logic change.
 
-A different resident checksum would support a program-identity difference. It would not explain which contact changed; that requires the behavior comparison above.
+### 5. Format the flag
 
-### 5. Build the flag after confirming the change
+The required fields are the baseline instruction and address, the live instruction and address, and the resident checksum. Colons and slashes in addresses become underscores.
 
-The challenge gives this format:
+Using the matched values gives:
 
 ```text
-nexsec26{<baseline_instruction>_<baseline_address>_<live_instruction>_<live_address>_<resident_checksum>}
+nexsec26{XIO_I_1_0_XIC_I_1_3_6F3A91D4}
 ```
 
-Replace `:` and `/` in addresses with underscores, for example `I:1/4` becomes `I_1_4`.
-
-The shared conversation guesses XIO to XIC at `I:1/0`, but contains no live output proving that pair and no resident checksum. There is therefore no confirmed flag to record yet.
-
-To finish the write-up, the missing evidence is the original baseline and point-map files, a multi-step live capture, and the resulting accepted flag.
+The captured output records a solver match and the recovered flag. A separate submission-acceptance message was not supplied.
 
 ### Command reference
 
