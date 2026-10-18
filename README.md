@@ -1,6 +1,6 @@
 # Eureka — CTF Write-ups
 
-CTF challenge write-ups and solution scripts by **Team Eureka**.
+CTF challenge write-ups by **Team Eureka**.
 
 ## Events
 
@@ -12,13 +12,13 @@ CTF challenge write-ups and solution scripts by **Team Eureka**.
 
 | Event | Category | Challenge | Main techniques |
 | --- | --- | --- | --- |
-| NEXSEC 2026 | PWN | [SpeedRun](2026/nexsec/speedrun/README.md) | Floating-point gates, self-modifying shellcode, TCP callback |
-| NEXSEC 2026 | PWN | [Gossips](2026/nexsec/gossips/README.md) | Format-string leak, stack-cookie preservation, ret2win |
+| NEXSEC 2026 | PWN | [SpeedRun](2026/nexsec/speedrun.md) | Floating-point gates, self-modifying shellcode, TCP callback |
+| NEXSEC 2026 | PWN | [Gossips](2026/nexsec/gossips.md) | Format-string leak, stack-cookie preservation, ret2win |
 
 ## Repository layout
 
-Each challenge lives in `<year>/<event>/<challenge>/`, with a `README.md` write-up and any companion solution scripts. Challenge pages render directly on GitHub, and can be linked individually for submissions.
+Each challenge has one Markdown file at `<year>/<event>/<challenge>.md`, with relevant code included in the write-up. Challenge pages render directly on GitHub, and can be linked individually for submissions.
 
-Start with the [contribution guide](CONTRIBUTING.md) and the [write-up template](templates/WRITEUP.md) when adding a new challenge.
+See the [contribution guide](CONTRIBUTING.md) when adding a new challenge.
 
 **Team:** Eureka

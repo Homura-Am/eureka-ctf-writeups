@@ -117,8 +117,6 @@ The corrected exploit successfully reached the flag function. The flag submitted
 nexsec26{3bc38871b4313662863c62545c9f30cb0d09a4b379d0029b3ac96e344fa09539}
 ```
 
-The full exploit, including its leak parser and network I/O, is in [`exploit.py`](exploit.py). The file is the recovered final version, not a reconstruction of hypothetical commands.
-
 ## Flag
 
 ```text

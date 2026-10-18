@@ -130,7 +130,7 @@ The recorded successful attempt used a **Pinggy TCP tunnel** as a publicly reach
 FLAG: nexsec26{Good___morning___or___perhaps___good___evening___everyone!!!}
 ```
 
-The remote delivery and callback steps are implemented in the companion [`exploit.py`](exploit.py). Its command-line options include `--host`, `--port`, `--callback-ip`, and `--callback-port`; a functioning externally accessible callback is required to reproduce the remote retrieval.
+A functioning externally accessible TCP listener is required to receive the callback. The callback hostname or IPv4 address and port must be embedded in the shellcode before submission.
 
 ## Flag
 
