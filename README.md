@@ -22,3 +22,9 @@ Each challenge has one Markdown file at `<year>/<event>/<challenge>.md`, with re
 See the [contribution guide](CONTRIBUTING.md) when adding a new challenge.
 
 **Team:** Eureka
+
+## Submission notes
+
+Each challenge write-up includes its category, underlying vulnerability, solving steps, relevant code, recorded result, and AI-assistance disclosure. Relevant code excerpts remain embedded in the Markdown files.
+
+ChatGPT assistance is disclosed in both current write-ups. The original chat-history links have not yet been supplied; add genuine, accessible links from the original solving conversations when providing evidence to the organisers. Record any additional AI assistance used by teammates as well.

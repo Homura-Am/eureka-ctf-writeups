@@ -2,6 +2,7 @@
 
 | Field | Details |
 | --- | --- |
+| Team | Eureka |
 | Category | PWN |
 | Points | 495 |
 | Service | `koala.nexsec.my:35028` |
@@ -132,6 +133,24 @@ FLAG: nexsec26{Good___morning___or___perhaps___good___evening___everyone!!!}
 
 A functioning externally accessible TCP listener is required to receive the callback. The callback hostname or IPv4 address and port must be embedded in the shellcode before submission.
 
+## Step-by-step solution summary
+
+1. Connect to the service and answer the first prompt with `nan`. This is the observed bypass; the exact comparison in the binary has not been reproduced in this write-up.
+2. Answer the second prompt with `6.892987146013775e-42`, whose float32 representation is `0x1337`.
+3. Prepare the payload described above, encoding syscall sites as `0f 04` and patching them to `0f 05` at runtime.
+4. Supply an accessible TCP callback endpoint in the payload. The recorded solve used a Pinggy tunnel forwarding to a listening local TCP port.
+5. Send the 16-bit little-endian payload length followed by the shellcode.
+6. The payload discovers the `flag-` file, reads it, and returns its contents over the callback connection.
+7. Read the flag from the callback listener. The original connection is used to deliver the payload.
+
+## Supporting evidence and verification
+
+The transcript in **Delivery and result** is the recorded successful solve, including the gate-passed message, callback result, and flag. It is historical evidence rather than output from a new execution.
+
+The recovered solution code passed a Python syntax check. Offline assembly reproduced a **314-byte** payload for a test IPv4 callback endpoint, confirmed that the transmitted bytes contain no `0f 05` pattern, and checked the 4096-byte limit. Float32 conversion reproduced `0x00001337`.
+
+The documented client needs Python 3 and GNU Binutils (`as` and `objcopy`) with x86-64 support; Linux or WSL is suitable. An externally reachable listener is required for the callback. Current remote service availability has not been checked.
+
 ## Flag
 
 ```text
@@ -141,3 +160,13 @@ nexsec26{Good___morning___or___perhaps___good___evening___everyone!!!}
 ## Takeaway
 
 The interesting part of SpeedRun was not just recognizing `0x1337` in floating-point form. The final payload also needed to operate under a syscall-byte restriction and find a flag whose exact filename was unknown. Encoding syscall instructions until runtime, using `getdents64` for discovery, and returning the file over a TCP callback completed the chain.
+
+## AI assistance and chat history
+
+**Tool:** ChatGPT.
+
+ChatGPT assisted with challenge analysis, exploit development and troubleshooting, and preparation and revision of this write-up.
+
+**Relevant original conversation:** “Speedrun Exploit Writeup”.
+
+**Original chat-history link:** Not yet supplied. Provide the genuine, accessible link to the original solving conversation if requested by the organisers. This write-up does not replace the original chat history. Any additional AI assistance used by team members should also be disclosed.

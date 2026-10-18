@@ -2,6 +2,7 @@
 
 | Field | Details |
 | --- | --- |
+| Team | Eureka |
 | Category | PWN |
 | Points | Not confirmed in recovered records |
 | Service | `koala.nexsec.my:35563` |
@@ -117,6 +118,24 @@ The corrected exploit successfully reached the flag function. The flag submitted
 nexsec26{3bc38871b4313662863c62545c9f30cb0d09a4b379d0029b3ac96e344fa09539}
 ```
 
+## Step-by-step solution summary
+
+1. Connect to the service and submit `guest` at the username prompt.
+2. Send the 47-pointer format string shown above at the secret prompt.
+3. Extract the 44th leaked value as the saved cookie and the 47th as the caller return address.
+4. Calculate the PE base and the two return targets using the documented RVAs.
+5. Build the `0x138`-byte payload using the leaked cookie, padding, alignment gadget, and flag-function address.
+6. Submit it at the final prompt on the same TCP connection, so the runtime values remain those disclosed by the leak.
+7. Read the response from the flag function. The recorded flag is shown in **Result** and **Flag**.
+
+## Supporting evidence and verification
+
+The excerpt in **Leaking the stack** records the exposed stack values. The original solving conversation records the corrected exploit's flag and the user's confirmation that it was accepted.
+
+The recovered Python solution passed a syntax check. The documented payload layout is `0x110 + 8 + 0x10 + 8 + 8 = 0x138` bytes, matching the original assertion.
+
+The client uses Python 3's standard library. The Windows PE target runs on the challenge host; the client does not require Windows. The leak indices and RVAs are specific to the original challenge build. The target and remote exploit were not re-run during this documentation update.
+
 ## Flag
 
 ```text
@@ -126,3 +145,13 @@ nexsec26{3bc38871b4313662863c62545c9f30cb0d09a4b379d0029b3ac96e344fa09539}
 ## Takeaway
 
 The format-string leak and the buffer overflow were individually useful, but combining them defeated the two major obstacles: stack-cookie verification and PE address randomization. With the cookie restored in the overflow and the runtime base known, a short return chain could jump to the flag routine.
+
+## AI assistance and chat history
+
+**Tool:** ChatGPT.
+
+ChatGPT assisted with challenge analysis, exploit development and troubleshooting, and preparation and revision of this write-up.
+
+**Relevant original conversation:** “Binary Exploitation Writeup” (Gossips).
+
+**Original chat-history link:** Not yet supplied. Provide the genuine, accessible link to the original solving conversation if requested by the organisers. This write-up does not replace the original chat history. Any additional AI assistance used by team members should also be disclosed.
