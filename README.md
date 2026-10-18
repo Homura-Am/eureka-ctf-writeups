@@ -16,6 +16,7 @@ Write-ups by **Team Eureka**.
 | Forensics | [Dead Drop Latte](2026/nexsec/dead-drop-latte.md) |
 | Forensics | [The Coffeshop Where We First Met at The Right Corner](2026/nexsec/the-coffeshop-where-we-first-met-at-the-right-corner.md) |
 | Cryptography | [Mirror Image](2026/nexsec/mirror-image.md) |
+| Cryptography | [Paradise](2026/nexsec/paradise.md) |
 | Misc | [VeryFest](2026/nexsec/veryfest.md) |
 | Misc | [Antivist](2026/nexsec/antivist.md) |
 | OT / ICS | [Lumi the Analyst](2026/nexsec/lumi-the-analyst.md) |
