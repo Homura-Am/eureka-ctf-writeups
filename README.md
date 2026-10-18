@@ -1,28 +1,18 @@
 # Eureka — CTF Write-ups
 
-CTF challenge write-ups by **Team Eureka**.
+Write-ups by **Team Eureka**.
 
-## Events
+## NEXSEC 2026
 
-| Year | Event | Write-ups |
-| --- | --- | --- |
-| 2026 | [NEXSEC 2026 CTF](2026/nexsec/) | 2 |
+| Category | Challenge |
+| --- | --- |
+| PWN | [SpeedRun](2026/nexsec/speedrun.md) |
+| PWN | [Gossips](2026/nexsec/gossips.md) |
+| RE | [Flag Checker](2026/nexsec/flag-checker.md) |
+| RE | [matryoshka](2026/nexsec/matryoshka.md) |
+| Forensics | [n8n](2026/nexsec/n8n.md) |
+| Forensics | [Dead Drop Latte](2026/nexsec/dead-drop-latte.md) |
+| Misc | [VeryFest](2026/nexsec/veryfest.md) |
+| Misc | [Antivist](2026/nexsec/antivist.md) |
 
-## Latest write-ups
-
-| Event | Category | Challenge | Main techniques |
-| --- | --- | --- | --- |
-| NEXSEC 2026 | PWN | [SpeedRun](2026/nexsec/speedrun.md) | Floating-point gates, self-modifying shellcode, TCP callback |
-| NEXSEC 2026 | PWN | [Gossips](2026/nexsec/gossips.md) | Format-string leak, stack-cookie preservation, ret2win |
-
-## Repository layout
-
-Each challenge has one Markdown file at `<year>/<event>/<challenge>.md`, with relevant code included in the write-up. Challenge pages render directly on GitHub, and can be linked individually for submissions.
-
-See the [contribution guide](CONTRIBUTING.md) when adding a new challenge.
-
-**Team:** Eureka
-
-## Submission notes
-
-Each challenge write-up includes its category, underlying vulnerability, solving steps, relevant code, and recorded result. Relevant code excerpts remain embedded in the Markdown files.
+Each challenge has one Markdown file in the event folder. The write-ups explain what we found, how we solved it, and the flag or answers obtained.

