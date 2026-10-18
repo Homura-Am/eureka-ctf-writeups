@@ -147,4 +147,4 @@ curl http://koala.nexsec.my:PORT/posts/1338/comments
 
 ## Result
 
-The exploit chain returns the report result through a comment prefixed with `EXFIL:`. The supplied write-up uses `nexsec26{...}` as a placeholder; the exact Ado flag was not included.
+The exploit chain returns the report result through a comment prefixed with `EXFIL:`. The supplied write-up uses `nexsec26{...}` as a placeholder; since this is our first flag we forgot to save the flag hence the exact Ado flag was not included.
