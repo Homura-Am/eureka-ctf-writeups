@@ -1,4 +1,4 @@
-# Bench Grinder GR-3 (OT / ICS): Write-up
+# Lumi the Analyst (OT / ICS): Write-up
 
 **Recovered flag:** `nexsec26{XIO_I_1_0_XIC_I_1_3_6F3A91D4}`
 
