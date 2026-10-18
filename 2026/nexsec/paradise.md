@@ -1,8 +1,5 @@
 # Paradise (Cryptography): Write-up
 
-**Event:** NEXSEC CTF 2026  
-**Category:** Cryptography
-
 The challenge used Python's `random.Random`, seeded with eight random bytes. It generated a 32-bit secret first, then leaked the upper 16 bits of each of the next 966 outputs. We needed to recover the original seed and the secret to obtain the flag.
 
 ## 1. Understand the challenge
