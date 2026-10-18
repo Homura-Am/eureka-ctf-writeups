@@ -1,7 +1,5 @@
 # The Coffeshop Where We First Met at The Right Corner (Forensics): Write-up
 
-NexSec26 CTF — forensic write-up
-
 **Category:** macOS forensics / static malware analysis\
 **Evidence:** `data_final.zip`, `data_final.dmg`, Aftermath artifacts, Discord cache files, Safari databases, and the recovered Mach-O executable\
 **Result:** Reconstruct the attack, answer eleven forensic questions, and recover the final flag.
