@@ -10,6 +10,7 @@ Write-ups by **Team Eureka**.
 | PWN | [Gossips](2026/nexsec/gossips.md) |
 | RE | [Flag Checker](2026/nexsec/flag-checker.md) |
 | RE | [matryoshka](2026/nexsec/matryoshka.md) |
+| RE | [Bytecode Bakery](2026/nexsec/bytecode-bakery.md) |
 | Forensics | [n8n](2026/nexsec/n8n.md) |
 | Forensics | [Dead Drop Latte](2026/nexsec/dead-drop-latte.md) |
 | Misc | [VeryFest](2026/nexsec/veryfest.md) |
