@@ -145,13 +145,3 @@ nexsec26{3bc38871b4313662863c62545c9f30cb0d09a4b379d0029b3ac96e344fa09539}
 ## Takeaway
 
 The format-string leak and the buffer overflow were individually useful, but combining them defeated the two major obstacles: stack-cookie verification and PE address randomization. With the cookie restored in the overflow and the runtime base known, a short return chain could jump to the flag routine.
-
-## AI assistance and chat history
-
-**Tool:** ChatGPT.
-
-ChatGPT assisted with challenge analysis, exploit development and troubleshooting, and preparation and revision of this write-up.
-
-**Relevant original conversation:** “Binary Exploitation Writeup” (Gossips).
-
-**Original chat-history link:** Not yet supplied. Provide the genuine, accessible link to the original solving conversation if requested by the organisers. This write-up does not replace the original chat history. Any additional AI assistance used by team members should also be disclosed.

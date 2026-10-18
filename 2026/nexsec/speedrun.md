@@ -160,13 +160,3 @@ nexsec26{Good___morning___or___perhaps___good___evening___everyone!!!}
 ## Takeaway
 
 The interesting part of SpeedRun was not just recognizing `0x1337` in floating-point form. The final payload also needed to operate under a syscall-byte restriction and find a flag whose exact filename was unknown. Encoding syscall instructions until runtime, using `getdents64` for discovery, and returning the file over a TCP callback completed the chain.
-
-## AI assistance and chat history
-
-**Tool:** ChatGPT.
-
-ChatGPT assisted with challenge analysis, exploit development and troubleshooting, and preparation and revision of this write-up.
-
-**Relevant original conversation:** “Speedrun Exploit Writeup”.
-
-**Original chat-history link:** Not yet supplied. Provide the genuine, accessible link to the original solving conversation if requested by the organisers. This write-up does not replace the original chat history. Any additional AI assistance used by team members should also be disclosed.
