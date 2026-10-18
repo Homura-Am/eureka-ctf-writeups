@@ -16,3 +16,9 @@ Write-ups by **Team Eureka**.
 | Misc | [Antivist](2026/nexsec/antivist.md) |
 
 Each challenge has one Markdown file in the event folder. The write-ups explain what we found, how we solved it, and the flag or answers obtained.
+
+## In progress
+
+| Category | Challenge | Status |
+| --- | --- | --- |
+| OT / ICS | [Bench Grinder GR-3](2026/nexsec/grinder-guard.md) | Partial; live evidence and flag not yet available |
